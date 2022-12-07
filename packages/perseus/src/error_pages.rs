@@ -303,7 +303,34 @@ impl<G: Html> Default for ErrorPages<G> {
     }
     #[cfg(not(debug_assertions))]
     fn default() -> Self {
-        panic!("you must provide your own error pages in production")
+                let mut error_pages = Self::new(
+            |cx, url, status, err, _| {
+                view! { cx,
+                    p { (format!("An error with HTTP code {} occurred at '{}': '{}'.", status, url, err)) }
+                }
+            },
+            |cx, _, _, _, _| {
+                view! { cx,
+                    title { "Error" }
+                }
+            },
+        );
+        // 404 is the most common by far, so we add a little page for that too
+        error_pages.add_page(
+            404,
+            |cx, _, _, _, _| {
+                view! { cx,
+                    p { "Page not found." }
+                }
+            },
+            |cx, _, _, _, _| {
+                view! { cx,
+                    title { "Not Found" }
+                }
+            },
+        );
+
+        error_pages
     }
 }
 
